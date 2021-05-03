@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
+        <title>Final Project</title>
+        <link rel="stylesheet" href="main.css">
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
+    
+    <div id='map'></div>
+    
+    <div class='map-overlay' id='features'><h2>Indego Bike Stations</h2><div id='pd'><p>Hover over a Philly Zip Code!</p></div></div>
+    <div class='map-overlay' id='legend'></div>
+    
+    <style>
+body {
+  margin: 0;
+  padding: 0;
+}
+
+h2,
+h3 {
+  margin: 10px;
+  font-size: 1.2em;
+}
+
+h3 {
+  font-size: 1em;
+}
+
+p {
+  font-size: 0.85em;
+  margin: 10px;
+  text-align: left;
+}
+
+/**
+* Create a position for the map
+* on the page */
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+/**
+* Set rules for how the map overlays
+* (information box and legend) will be displayed
+* on the page. */
+.map-overlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  margin-right: 20px;
+  font-family: Arial, sans-serif;
+  overflow: auto;
+  border-radius: 3px;
+}
+
+#features {
+  top: 0;
+  height: 150px;
+  margin-top: 20px;
+  width: 250px;
+}
+
+#legend {
+  padding: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  line-height: 18px;
+  height: 90px;
+  margin-bottom: 40px;
+  width: 100px;
+}
+
+.legend-key {
+  display: inline-block;
+  border-radius: 20%;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+    </style>
+</head>
+<body>
+
+         
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiMTdpbXNzIiwiYSI6ImNrbzdmb2l5cjFuaGMyeG9pbWhwYW42Zm0ifQ._DBD5uhCSBf5ppSNXxvxkg';
+    
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/17imss/cko66bsu70xbc17r0lo53vgo2',
+    });
+        
+    map.on('load', function() {
+            
+        var layers = ['0 Kiosks', '1 - 4', '4 - 9', '9 - 13', '23'];
+        var colors = ['#b5b5b5', '#91de4a', '#81b72a', '#2183c0', '#1d2972'];
+        
+        for (i = 0; i < layers.length; i++) {
+            var layer = layers[i];
+            var color = colors[i];
+            var item = document.createElement('div');
+            var key = document.createElement('span');
+            key.className = 'legend-key';
+            key.style.backgroundColor = color;
+
+            var value = document.createElement('span');
+            value.innerHTML = layer;
+            item.appendChild(key);
+            item.appendChild(value);
+            legend.appendChild(item);
+        }
+        
+        var nav = new mapboxgl.NavigationControl();
+        map.addControl(nav, 'top-left');
+        
+        map.on('mousemove', function(e) {
+            var zips = map.queryRenderedFeatures(e.point, {
+                layers: ['phillyzips_kiosks_rewardbikes_rewarddocks']
+            });
+
+            if (zips.length > 0) {
+                document.getElementById('pd').innerHTML = '<h3><strong>' + 'Zip Code: ' + zips[0].properties.CODE + '</strong></h3><p><strong><em>' + zips[0].properties.NumKiosks + '</strong> Kiosks' + '</em></p>' + '<p><strong><em>' + zips[0].properties.RewardBikesAvailable + '</strong> Reward Bikes Available' + '</em></p>' + '<p><strong><em>' + zips[0].properties.RewardDocksAvailable + '</strong> Reward Docks Available' + '</em></p>';
+            } else {
+                document.getElementById('pd').innerHTML = '<p>Hover over a Philly Zip Code!</p>';
+            }
+        });
+        
+        map.on('click', function(e) {
+            var stations = map.queryRenderedFeatures(e.point, {
+                layers: ['indego-stations']
+            });
+            
+            if (stations.length > 0){
+                var name = stations[0].properties.coordinates
+                var totalDocks = stations[0].properties.totalDocks.toLocaleString()
+                var bikesAvailable = stations[0].properties.bikesAvailable.toLocaleString()
+            
+            console.log(stations)
+            //console.log(name)
+            //console.log(totalDocks)
+            //console.log(bikesAvailable)
+            
+            var popup = new mapboxgl.Popup()
+                .setLngLat(stations[0].geometry.coordinates)
+                .setHTML('<b>' + name + '</b><br>' + '<b>' +
+                        + totalDocks + '</b>' + ' Total Bike Docks <br>'
+                        + '<b>' + bikesAvailable + '</b>' + ' Bikes Available')
+                .addTo(map);
+            }
+        });
+        
+        map.getCanvas().style.cursor = 'default';
+    });
+    
+    
+    
+</script>
+        
+</body>
+</html>
